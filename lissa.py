@@ -16,7 +16,7 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
                 # Note that we overwrite, as opposed to storing in an array and only using last element
                 # as in the paper.
                 step_list[-1] = np.dot(step_list[-1].T,  (np.eye(data.shape[1]-1) - hess(x_curr, p)).T) + grad(x_curr, data)
-        total = np.sum(step_list)
+        total = sum(step_list)
         avg = total / S1
 
         x_curr -= avg
@@ -28,7 +28,7 @@ def sigmoid(z):
     return 1/ (1 + np.exp(-z))
 
 def zee(x_curr, datapoint):
-    return np.dot(x_curr.T, datapoint)
+    return np.dot(x_curr, datapoint)
 
 # From https://stats.stackexchange.com/questions/68391/hessian-of-logistic-function
 def logistic_gradient(x_curr, data):
@@ -43,9 +43,10 @@ def logistic_hessian(x_curr, data_point):
 def loss(x_curr, data):
     loss = 0
     for i in range(data.shape[0]):
-        loss += -(data[i][-1] * np.log(sigmoid(zee(x_curr, i))) + (1- data[i][-1]) * (1- np.log(sigmoid(zee(x_curr, i)))))
-
+        d = data[i][:-1]
+        loss += -(data[i][-1] * np.log(sigmoid(zee(x_curr, d))) + (1- data[i][-1]) * (1- np.log(sigmoid(zee(x_curr, d)))))
+    return loss
 df = pd.read_csv("banknote.txt", header=None).values
-data = np.insert(df, -2, np.zeros(df.shape[0]), axis=1)
-
-print(lissa(np.zeros(data.shape[1] - 1), logistic_gradient, logistic_hessian, data, 10000, 10, 2))
+data = np.insert(df, -1, np.ones(df.shape[0]), axis=1)
+print(data[0])
+print(lissa(np.zeros(data.shape[1] - 1), logistic_gradient, logistic_hessian, data, 100, 200, 3))
