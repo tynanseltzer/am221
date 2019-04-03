@@ -21,26 +21,29 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
 
         x_curr -= avg
         print(x_curr)
+        print(loss(x_curr, data))
     return x_curr
 
 def sigmoid(z):
     return 1/ (1 + np.exp(-z))
 
 def zee(x_curr, datapoint):
-    return np.dot(x_curr.T, da)
+    return np.dot(x_curr.T, datapoint)
 
 # From https://stats.stackexchange.com/questions/68391/hessian-of-logistic-function
 def logistic_gradient(x_curr, data):
-    return np.dot(data[:,:-1].T, (sigmoid(np.dot(x_curr, data[:,:-1].T)) - data[:,-1]))/ data.shape[0]
-
+    foo =  np.dot(data[:,:-1].T, (sigmoid(np.dot(x_curr, data[:,:-1].T)) - data[:,-1]))/ data.shape[0]
+    return foo
 
 def logistic_hessian(x_curr, data_point):
-    return np.dot(data_point.T, data_point)*sigmoid(np.dot(x_curr, data_point.T))*(1-sigmoid(np.dot(x_curr, data_point.T)))
+    data_point = np.atleast_2d(data_point)
+    bar =  np.dot(data_point.T, data_point)*sigmoid(np.dot(x_curr, data_point.T))*(1-sigmoid(np.dot(x_curr, data_point.T)))
+    return bar
 
 def loss(x_curr, data):
     loss = 0
     for i in range(data.shape[0]):
-        loss += -(data[i][-1] * )
+        loss += -(data[i][-1] * np.log(sigmoid(zee(x_curr, i))) + (1- data[i][-1]) * (1- np.log(sigmoid(zee(x_curr, i)))))
 
 df = pd.read_csv("banknote.txt", header=None).values
 data = np.insert(df, -2, np.zeros(df.shape[0]), axis=1)
