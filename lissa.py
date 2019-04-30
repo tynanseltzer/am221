@@ -46,12 +46,13 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
             # Hessian Estimation instead of multiplying it in at every step (as notation seems to hint in the paper)
             # thoughts?
             #step_list[-1] += grad(x_curr, data)
-
+            print(step_list[-1])
+            true_step = (np.dot((np.linalg.inv(full_hess(x_curr, data))), grad(x_curr, data)))
         total = sum(step_list)
         avg = total / S1
         #x_curr -= line_search(loss, logistic_gradient, xk= x_curr, pk=-avg, args=([data]), maxiter=1000)[0] * avg
         #x_curr -= _line_search_wolfe12(lambda x: loss(x, data), lambda x: logistic_gradient(x, data), xk=x_curr, pk=-avg, gfk=None, old_fval=None, old_old_fval=None)[0] * avg
-        x_curr -= avg
+        x_curr -= true_step
         if t % 1 == 0:
             print(t)
             print(data_set_loss(x_curr, data))
@@ -64,11 +65,16 @@ def zee(x_curr, datapoint):
     foo = a_np.dot(x_curr, datapoint)
     return foo
 
+def sigmoid2(z):
+    return 1/ (1 + np.exp(-z))
+
+def zee2(x_curr, datapoint):
+    foo = np.dot(x_curr, datapoint)
+    return foo
+
 # From https://stats.stackexchange.com/questions/68391/hessian-of-logistic-function
 def logistic_gradient(x_curr, data):
-    z = zee(x_curr, data[:,:-1].T)
-    inner = sigmoid(z - data[:,-1])
-    foo =  np.dot(data[:,:-1].T, inner)/ data.shape[0]
+    foo =  np.dot(data[:,:-1].T, (sigmoid(np.dot(x_curr, data[:,:-1].T)) - data[:,-1]))/ data.shape[0]
     return foo
 
 # def logistic_hessian(x_curr, data_point):
@@ -91,6 +97,7 @@ def loss(x_curr, point):
 
 hess_loss = hessian(loss)
 grad_loss = grad(loss)
+
 def data_set_grad(x_curr, data):
     g = 0
     for point in data:
@@ -102,6 +109,16 @@ def data_set_loss(x_curr, data):
     for point in data:
         total += loss(x_curr, point)
     return total
+
+def old_loss(x_curr, data):
+    loss = 0
+    for i in range(data.shape[0]):
+        d = data[i][:-1]
+        loss += -(data[i][-1] * np.log(sigmoid2(zee2(x_curr, d))) + (1- data[i][-1]) * np.log(1-(sigmoid2(zee2(x_curr, d)))))
+    return loss
+
+
+full_hess = hessian(data_set_loss)
 
 # Data in the repo
 df = pd.read_csv("banknote.txt", header=None).values
@@ -115,15 +132,15 @@ df = pd.read_csv("banknote.txt", header=None).values
 data = np.insert(df, -1, np.ones(df.shape[0]), axis=1)
 
 print(time.time())
-# This uses BFGS
-# result = (minimize(fun=loss, x0=np.zeros(data.shape[1] - 1), args=(data), options={'disp':True}))
+# # This uses BFGS
+# result = (minimize(fun=data_set_loss, x0=np.zeros(data.shape[1] - 1), args=(data), options={'disp':True}))
 # print(result['x'])
 # print(time.time())
-# # Let's use Newton-CG
-# (minimize(fun=loss, x0=np.zeros(data.shape[1] - 1), method="Newton-CG", jac=logistic_gradient, args=(data), options={'disp':True}))
+# Let's use Newton-CG
+(minimize(fun=old_loss, x0=np.zeros(data.shape[1] - 1), method="Newton-CG", jac=data_set_grad, args=(data), options={'disp':True}))
 # print(time.time())
 # Other methods we could compare to??
 
 # Seems to converge to minimum of ~24.9 after ~1000 iterations, worse without line search
 x_start = np.array([-4.06045034, -2.2588729, -2.7719268, -0.21613608, 4.08818242])
-print(lissa(x_start=x_start, grad=data_set_grad, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=10))
+#print(lissa(x_start=x_start, grad=data_set_grad, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=0))
