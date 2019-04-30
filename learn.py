@@ -111,9 +111,16 @@ while True:
     x_curr = x_curr - np.dot(np.linalg.inv(full_hess2(x_curr, data)), logistic_gradient(x_curr, data))
     temp = (full_hess2(x_curr, data))
     print(np.linalg.inv(full_hess2(x_curr, data)))
+    print("Uninverted", full_hess2(x_curr, data))
+
     total_estim = np.zeros(temp.shape)
-    estim = (np.eye(temp.shape[0]) - full_hess2(x_curr, data))
     for i in range(5):
+        r_point = np.random.choice(data.shape[0])
+        dp = data[r_point]
+        estim = (np.eye(temp.shape[0]) - hess_loss(x_curr, dp))
         total_estim += estim ** i
+        print("Norm", np.linalg.norm(hess_loss(x_curr, dp)) < 1)
+        print("Eigvals", np.all(np.linalg.eigvals(hess_loss(x_curr, dp)) > 0))
+        print("loss", loss(x_curr, dp))
     #print(np.dot(logistic_gradient(x_curr, data), total_estim))
     print("Estimated", total_estim)
