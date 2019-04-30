@@ -109,7 +109,11 @@ data = np.insert(df, -1, np.ones(df.shape[0]), axis=1)
 
 while True:
     x_curr = x_curr - np.dot(np.linalg.inv(full_hess2(x_curr, data)), logistic_gradient(x_curr, data))
-    print(data_set_loss(x_curr, data))
-    print("Hessians")
-    print("Mine",logistic_hessian(x_curr, data[14,:-1]))
-    print("Auto",hess_loss(x_curr, data[14]))
+    temp = (full_hess2(x_curr, data))
+    print(np.linalg.inv(full_hess2(x_curr, data)))
+    total_estim = np.zeros(temp.shape)
+    estim = (np.eye(temp.shape[0]) - full_hess2(x_curr, data))
+    for i in range(5):
+        total_estim += estim ** i
+    #print(np.dot(logistic_gradient(x_curr, data), total_estim))
+    print("Estimated", total_estim)

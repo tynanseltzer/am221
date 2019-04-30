@@ -36,6 +36,7 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
             #points = (data[idxs, :-1])
             points = (data[idxs])
             np.random.shuffle(points)
+            estim = np.eye()
             for p in points:
                 # Note that we overwrite, as opposed to storing in an array and only using last element
                 # as in the paper.
@@ -51,8 +52,8 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
         avg = total / S1
         #x_curr -= line_search(loss, logistic_gradient, xk= x_curr, pk=-avg, args=([data]), maxiter=1000)[0] * avg
         #x_curr -= _line_search_wolfe12(lambda x: loss(x, data), lambda x: logistic_gradient(x, data), xk=x_curr, pk=-avg, gfk=None, old_fval=None, old_old_fval=None)[0] * avg
-        true_step = (np.dot((np.linalg.inv(full_hess(x_curr, data))), logistic_gradient(x_curr, data)))
-        x_curr -= true_step
+        #true_step = (np.dot((np.linalg.inv(full_hess(x_curr, data))), logistic_gradient(x_curr, data)))
+        x_curr -= avg
         if t % 1 == 0:
             print(t)
             print(data_set_loss(x_curr, data))
@@ -144,4 +145,4 @@ print(time.time())
 # Seems to converge to minimum of ~24.9 after ~1000 iterations, worse without line search
 x_start = np.array([-4.06045034, -2.2588729, -2.7719268, -0.21613608, 4.08818242])
 x_start = np.zeros(5)
-print(lissa(x_start=x_start, grad=data_set_grad, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=0))
+print(lissa(x_start=x_start, grad=logistic_gradient, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=5))
