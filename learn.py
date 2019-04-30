@@ -92,8 +92,7 @@ def full_hess(x_curr, data):
 
 full_hess2 = hessian(data_set_loss)
 
-x_curr = np.array([-4.06045034, -2.2588729, -2.7719268, -0.21613608, 4.08818242])
-x_curr = np.zeros(5)
+x_curr = np.array([-7.85933049, -4.19096321, -5.28743068, -0.60531897,  7.32180471])
 
 # Data in the repo
 df = pd.read_csv("banknote.txt", header=None).values
@@ -108,19 +107,22 @@ data = np.insert(df, -1, np.ones(df.shape[0]), axis=1)
 
 
 while True:
+    print(full_hess2(x_curr, data))
+    print("Norm", np.linalg.norm(full_hess2(x_curr, data)) < 1)
     x_curr = x_curr - np.dot(np.linalg.inv(full_hess2(x_curr, data)), logistic_gradient(x_curr, data))
     temp = (full_hess2(x_curr, data))
     print(np.linalg.inv(full_hess2(x_curr, data)))
-    print("Uninverted", full_hess2(x_curr, data))
 
     total_estim = np.zeros(temp.shape)
-    for i in range(5):
+    for i in range(1000):
         r_point = np.random.choice(data.shape[0])
         dp = data[r_point]
-        estim = (np.eye(temp.shape[0]) - hess_loss(x_curr, dp))
-        total_estim += estim ** i
-        print("Norm", np.linalg.norm(hess_loss(x_curr, dp)) < 1)
-        print("Eigvals", np.all(np.linalg.eigvals(hess_loss(x_curr, dp)) > 0))
-        print("loss", loss(x_curr, dp))
-    #print(np.dot(logistic_gradient(x_curr, data), total_estim))
+        estim = (np.eye(temp.shape[0]) - full_hess2(x_curr, data))
+        total_estim += np.linalg.matrix_power(estim, i)
+        print(total_estim)
+        print("Norm", np.linalg.norm(full_hess2(x_curr, data)) < 1)
+        print("Eigvals", np.all(np.linalg.eigvals(full_hess2(x_curr, data)) > 0))
+
     print("Estimated", total_estim)
+    print(x_curr)
+    print(data_set_loss(x_curr, data))
