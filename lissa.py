@@ -47,11 +47,11 @@ def lissa(x_start, grad, hess, data, NUM_ITERS, S1, S2):
             # thoughts?
             #step_list[-1] += grad(x_curr, data)
             print(step_list[-1])
-            true_step = (np.dot((np.linalg.inv(full_hess(x_curr, data))), grad(x_curr, data)))
         total = sum(step_list)
         avg = total / S1
         #x_curr -= line_search(loss, logistic_gradient, xk= x_curr, pk=-avg, args=([data]), maxiter=1000)[0] * avg
         #x_curr -= _line_search_wolfe12(lambda x: loss(x, data), lambda x: logistic_gradient(x, data), xk=x_curr, pk=-avg, gfk=None, old_fval=None, old_old_fval=None)[0] * avg
+        true_step = (np.dot((np.linalg.inv(full_hess(x_curr, data))), logistic_gradient(x_curr, data)))
         x_curr -= true_step
         if t % 1 == 0:
             print(t)
@@ -74,7 +74,7 @@ def zee2(x_curr, datapoint):
 
 # From https://stats.stackexchange.com/questions/68391/hessian-of-logistic-function
 def logistic_gradient(x_curr, data):
-    foo =  np.dot(data[:,:-1].T, (sigmoid(np.dot(x_curr, data[:,:-1].T)) - data[:,-1]))/ data.shape[0]
+    foo =  np.dot(data[:,:-1].T, (sigmoid(np.dot(x_curr, data[:,:-1].T)) - data[:,-1]))
     return foo
 
 # def logistic_hessian(x_curr, data_point):
@@ -137,10 +137,11 @@ print(time.time())
 # print(result['x'])
 # print(time.time())
 # Let's use Newton-CG
-(minimize(fun=old_loss, x0=np.zeros(data.shape[1] - 1), method="Newton-CG", jac=data_set_grad, args=(data), options={'disp':True}))
+# (minimize(fun=old_loss, x0=np.zeros(data.shape[1] - 1), method="Newton-CG", jac=logistic_gradient, args=(data), options={'disp':True}))
 # print(time.time())
 # Other methods we could compare to??
 
 # Seems to converge to minimum of ~24.9 after ~1000 iterations, worse without line search
 x_start = np.array([-4.06045034, -2.2588729, -2.7719268, -0.21613608, 4.08818242])
-#print(lissa(x_start=x_start, grad=data_set_grad, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=0))
+x_start = np.zeros(5)
+print(lissa(x_start=x_start, grad=data_set_grad, hess=hess_loss, data=data, NUM_ITERS=1000, S1=1, S2=0))
